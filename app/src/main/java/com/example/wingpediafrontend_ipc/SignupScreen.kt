@@ -347,7 +347,7 @@ fun SignupScreen(navController: NavController){
 
         Spacer(modifier = Modifier.height(50.dp))
 
-        //CONFIRM SIGN IN BUTTONe
+        //CONFIRM SIGN IN BUTTON
         Button(onClick = {
 
             // Turn password values into text for validation
