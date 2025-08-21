@@ -1,5 +1,6 @@
 package com.example.wingpediafrontend_ipc
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -37,30 +38,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.wingpediafrontend_ipc.WingpediaDatabase.supabase
 import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.launch
 import io.github.jan.supabase.auth.providers.builtin.Email
-import io.github.jan.supabase.postgrest.query.filter.FilterOperator
-import kotlinx.serialization.Serializable
-import androidx.compose.ui.text.AnnotatedString
-
-@Serializable
-data class UserCredentials(
-    val id: String,
-    val username: String? = null,
-    val email: String? = null,
-    val created_at: String
-)
 
 @Composable
 fun LoginScreen(navController: NavController){
 
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    var LoginError by remember { mutableStateOf("") }
 
     Column (
         modifier = Modifier
@@ -101,7 +92,7 @@ fun LoginScreen(navController: NavController){
             mutableStateOf("")
         }
 
-        BasicTextField( // edit more cause its confusing af
+        BasicTextField(
             value = loginField_Email,
             onValueChange = { loginField_Email = it },
             modifier = Modifier
@@ -109,7 +100,7 @@ fun LoginScreen(navController: NavController){
                 .height(90.dp)
                 .padding(10.dp)
                 .border(1.dp, Color.Black, RoundedCornerShape(20.dp))
-                .padding(10.dp), // inner padding
+                .padding(10.dp),
             singleLine = true,
             decorationBox = { innerTextField ->
                 Box(modifier = Modifier.fillMaxWidth()) {
@@ -187,45 +178,59 @@ fun LoginScreen(navController: NavController){
             )
         )
 
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Box( // For input fields error message
+            modifier = Modifier
+                .width(270.dp)
+        ) {
+            Text(
+                text = LoginError,
+                fontSize = 15.sp,
+                softWrap = true,
+                textAlign = TextAlign.Center,
+                color =  Color.Red
+            )
+        }
+
         Spacer(modifier = Modifier.height(50.dp))
 
         Button(onClick = {
 
             val loginPass = state.text.toString()
+            // Error message for empty login fields
+            LoginError = if(loginField_Email.isBlank() || loginPass.isBlank()) "Please enter a valid email address and password" else ""
 
-            coroutineScope.launch {
-                try {
-                    // Step 1: Authenticate
-                    supabase.auth.signInWith(Email) {
-                        email = loginField_Email
-                        this.password = loginPass
-                    }
-
-                    // Step 2: Get logged-in user ID
-                    val userId = supabase.auth.currentUserOrNull()?.id
-                        ?: throw Exception("Login failed: No user ID found")
-
-                    // Step 3: Query User Credentials table for that user
-                    val userInfo = supabase.from("User Credentials")
-                        .select {
-                            filter {
-                                filter("id", FilterOperator.EQ, userId.toString())
-                            }
+            if (LoginError.isEmpty()) {
+                coroutineScope.launch {
+                    try {
+                        supabase.auth.signInWith(Email) {
+                            email = loginField_Email
+                            this.password = loginPass
                         }
-                        .decodeList<UserCredentials>()
-                        .firstOrNull()
-                        ?: throw Exception("No matching user in User Credentials")
 
-                    // Optional: Do something with username/email
-                    println("Username: ${userInfo.username}, Email: ${userInfo.email}")
+                        val sharedPref = context.getSharedPreferences("wingpedia_prefs", Context.MODE_PRIVATE)
+                        with(sharedPref.edit()) {
+                            putBoolean("is_logged_in", true)
+                            apply()
+                        }
 
-                    // Step 4: Navigate to home
-                    navController.navigate("Home_screen") {
-                        popUpTo("login") { inclusive = true }
+                        navController.navigate("Home_screen") {
+                            popUpTo(navController.graph.startDestinationId) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+
+                    } catch (e: Exception) {
+                        if (e.message?.contains("Invalid login credentials") == true) {
+                            // Error message if entered input is incorrect
+                            LoginError = "Email address or password entered is incorrect"
+                        } else {
+                            // Error message for general errors
+                            Toast.makeText(context, "An error occurred, please try again", Toast.LENGTH_LONG).show()
+                        }
                     }
-
-                } catch (e: Exception) {
-                    Toast.makeText(context, e.message ?: "Login failed", Toast.LENGTH_LONG).show()
                 }
             }
         },
