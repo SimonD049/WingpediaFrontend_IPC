@@ -1,5 +1,6 @@
 package com.example.wingpediafrontend_ipc
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,9 +9,16 @@ import androidx.navigation.compose.*
 class WingpediaNavigation : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val sharedPref = getSharedPreferences("wingpedia_prefs", Context.MODE_PRIVATE)
+        val isLoggedIn = sharedPref.getBoolean("is_logged_in", false)
+
         setContent {
             val navController = rememberNavController()
-            NavHost(navController = navController, startDestination = "Welcome_screen", builder = {
+
+            val startDestination = if (isLoggedIn) "Home_screen" else "Welcome_screen"
+
+            NavHost(navController = navController, startDestination = startDestination, builder = {
                 composable("Welcome_screen") {
                     WelcomeScreen(navController)
                 }
@@ -27,7 +35,7 @@ class WingpediaNavigation : ComponentActivity() {
                     SignupScreen(navController)
                 }
                 composable("Home_screen") {
-                    HomeScreen(navController)
+                    NavigationBar(navController)
                 }
             })
         }
