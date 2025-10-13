@@ -54,7 +54,7 @@ fun NavigationBar(navController: NavController) {
             hasNews = false,
         ),
         NavItems(
-            title = "",
+            title = "CamMic",
             selectedIcon = NavIcon.ImgIc(R.drawable.selected_cammic_icon),
             unselectedIcon = NavIcon.ImgIc(R.drawable.unselected_cammic_icon),
             hasNews = false,
@@ -111,6 +111,7 @@ fun NavigationBar(navController: NavController) {
         when (items[selectedIconIndex].title) {
             "Home" -> HomeScreen(navController, modifier = Modifier.padding(innerPadding))
             "Settings" -> SettingsScreen(navController, modifier = Modifier.padding(innerPadding))
+            "CamMic" -> CamMicOptionScreen(navController, modifier = Modifier.padding(innerPadding))
         }
     }
 }
