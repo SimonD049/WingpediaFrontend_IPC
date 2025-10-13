@@ -44,6 +44,7 @@ android {
 dependencies {
 
     val nav_version = "2.9.3"
+    val coil_version = "3.3.0"
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -55,6 +56,8 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation ("androidx.compose.material:material-icons-extended")
     implementation("androidx.navigation:navigation-compose:${nav_version}")
+    implementation("io.coil-kt.coil3:coil-compose:${coil_version}")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:${coil_version}")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -67,5 +70,6 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
     implementation("io.github.jan-tennert.supabase:auth-kt")
     implementation("io.github.jan-tennert.supabase:realtime-kt")
+    implementation("io.github.jan-tennert.supabase:storage-kt")
     implementation("io.ktor:ktor-client-android:3.2.3")
 }
